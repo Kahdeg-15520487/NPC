@@ -1,7 +1,7 @@
 {
 	"name": "npc-editor",
 	"description": "editor for npc",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"scripts": {
 		"execute": "cross-env NODE_ENV=dev node node_modules/electron/cli.js .",
 		"pack": "electron-builder --dir",
