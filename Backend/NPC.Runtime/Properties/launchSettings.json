@@ -2,7 +2,7 @@
   "profiles": {
     "NPC.Runtime": {
       "commandName": "Project",
-      "commandLineArgs": "sample.npc"
+      "commandLineArgs": "run sample/sample.npc"
     }
   }
 }

@@ -7,6 +7,7 @@ namespace NPC.Compiler.Contract
         int CurrentLine { get; }
         string CurrentLineSource { get; }
         int CurrentPosInLine { get; }
+        string CurrentLineContext { get; }
 
         void Error();
         Token GetNextToken();

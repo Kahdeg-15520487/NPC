@@ -4,7 +4,7 @@
 <head>
 	<meta charset="UTF-8" />
 	<meta http-equiv="Content-Security-Policy"
-		content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' file:; font-src file:" />
+		content="default-src 'none'; img-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' file:; font-src file:" />
 	<title>Monaco Editor!</title>
 	<style>
 		html,
@@ -62,6 +62,8 @@
 			<button id="btnLoadFile">Open</button>
 			<button id="beautify">Beautify</button>
 			<button id="toggle-dark-mode" style="float:right;">Toggle Dark Mode</button>
+			<button id="beautify_json" style="float:right;">Beautify</button>
+			<button id="minify" style="float:right;">Minify</button>
 		</div>
 		<div id="container"></div>
 		<div id="jsonviewer"></div>
@@ -244,19 +246,72 @@
 		document.getElementById('compile').addEventListener("click", async () => {
 			console.log(editor.getValue());
 			const compiled = await window.npc.compile(editor.getValue());
-			jsonViewer.setValue(compiled);
+			if (compiled.result) {
+				jsonViewer.setValue(compiled.result);
+				monaco.editor.setModelMarkers(editor.getModel(), "editor", [])
+				runresult.setModelLanguage(runresult.getModel(), "json");
+			} else {
+				monaco.editor.setModelMarkers(editor.getModel(), "editor", [{
+					startColumn: 0,
+					endColumn: 120,
+					startLineNumber: compiled.err.Line + 1,
+					endLineNumber: compiled.err.Line + 1,
+					message: compiled.err.ErrorMessage,
+					severity: monaco.MarkerSeverity.Error
+				}])
+				runresult.setValue(compiled.err.Message);
+				runresult.setModelLanguage(runresult.getModel(), "npc");
+			}
 		});
 
 		document.getElementById('run').addEventListener("click", async () => {
 			console.log(editor.getValue());
 			const runResult = await window.npc.run(editor.getValue());
-			runresult.setValue(runResult);
+			if (runResult.result) {
+				runresult.setValue(runResult.result);
+				monaco.editor.setModelMarkers(editor.getModel(), "editor", [])
+				runresult.setModelLanguage(runresult.getModel(), "json");
+			} else {
+				monaco.editor.setModelMarkers(editor.getModel(), "editor", [{
+					startColumn: 0,
+					endColumn: 120,
+					startLineNumber: runResult.err.Line + 1,
+					endLineNumber: runResult.err.Line + 1,
+					message: runResult.err.ErrorMessage,
+					severity: monaco.MarkerSeverity.Error
+				}])
+				runresult.setValue(runResult.err.Message);
+				runresult.setModelLanguage(runresult.getModel(), "npc");
+			}
 		});
 
 		document.getElementById('beautify').addEventListener("click", async () => {
 			console.log(editor.getValue());
 			const beautified = await window.npc.beautify(editor.getValue());
-			editor.setValue(beautified);
+			if (beautified.result) {
+				editor.setValue(beautified.result);
+				monaco.editor.setModelMarkers(editor.getModel(), "editor", [])
+				runresult.setModelLanguage(runresult.getModel(), "json");
+			} else {
+				monaco.editor.setModelMarkers(editor.getModel(), "editor", [{
+					startColumn: 0,
+					endColumn: 120,
+					startLineNumber: beautified.err.Line + 1,
+					endLineNumber: beautified.err.Line + 1,
+					message: beautified.err.ErrorMessage,
+					severity: monaco.MarkerSeverity.Error
+				}])
+				runresult.setValue(beautified.err.Message);
+				runresult.setModelLanguage(runresult.getModel(), "npc");
+			}
+		});
+
+		document.getElementById('minify').addEventListener("click", function () {
+			jsonViewer.setValue(JSON.stringify(JSON.parse(jsonViewer.getValue())));
+		});
+
+		document.getElementById('beautify_json').addEventListener("click", function () {
+			jsonViewer.setValue(JSON.stringify(JSON.parse(jsonViewer.getValue()), null, 2));
 		});
 	});
 </script>

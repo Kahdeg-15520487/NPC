@@ -26,6 +26,13 @@ function createWindow() {
 			? process.resourcesPath // Live Mode
 			: __dirname; // Dev Mode
 
+	let tempFile = path.join(resourcePath, "temp.npc");
+	let tempCompiledFile = path.join(resourcePath, "temp.json");
+	let tempBeautifiedFile = path.join(resourcePath, "temp.b.npc");
+	let tempRunResultFile = path.join(resourcePath, "temp.r.json");
+	let tempErrorFile = path.join(resourcePath, "temp.err.json");
+	let compiler = path.join(resourcePath, "NPC.Runtime.exe");
+
 	ipcMain.handle('dark-mode:toggle', () => {
 		if (nativeTheme.shouldUseDarkColors) {
 			nativeTheme.themeSource = 'light'
@@ -36,33 +43,55 @@ function createWindow() {
 	})
 
 	ipcMain.handle('npc-compile', async (event, ...args) => {
-		let tempFile = path.join(resourcePath, "temp.npc");
-		let tempCompiledFile = path.join(resourcePath, "temp.json");
-		let compiler = path.join(resourcePath, "NPC.Runtime.exe");
+		try {
+			await fs.unlink(tempCompiledFile);
+		} catch (error) { }
 		await fs.writeFile(tempFile, args[0]);
 		const { stdout } = await execFile(compiler, ["compile", tempFile]);
-		const compiled = await fs.readFile(tempCompiledFile, "utf8");
-		return compiled;
+		try {
+			await fs.access(tempCompiledFile);
+			const compiled = await fs.readFile(tempCompiledFile, "utf8");
+			return { result: compiled, err: null };
+		} catch (error) {
+			log.info(error);
+			const err = await fs.readFile(tempErrorFile, "utf8");
+			log.info(err);
+			return { result: null, err: JSON.parse(err) };
+		}
 	})
 
 	ipcMain.handle('npc-beautify', async (event, ...args) => {
-		let tempFile = path.join(resourcePath, "temp.npc");
-		let tempBeautifiedFile = path.join(resourcePath, "temp.b.npc");
-		let compiler = path.join(resourcePath, "NPC.Runtime.exe");
+		try {
+			await fs.unlink(tempBeautifiedFile);
+		} catch (error) { }
 		await fs.writeFile(tempFile, args[0]);
 		const { stdout } = await execFile(compiler, ["beautify", tempFile]);
-		const compiled = await fs.readFile(tempBeautifiedFile, "utf8");
-		return compiled;
+		try {
+			await fs.access(tempBeautifiedFile);
+			const compiled = await fs.readFile(tempBeautifiedFile, "utf8");
+			return { result: compiled, err: null };
+		} catch (error) {
+			const err = await fs.readFile(tempErrorFile, "utf8");
+			return { result: null, err: JSON.parse(err) };
+		}
 	})
 
 	ipcMain.handle('npc-run', async (event, ...args) => {
-		let tempFile = path.join(resourcePath, "temp.npc");
-		let tempRunResultFile = path.join(resourcePath, "temp.r.json");
-		let compiler = path.join(resourcePath, "NPC.Runtime.exe");
+		try {
+			await fs.unlink(tempRunResultFile);
+		} catch (error) { }
 		await fs.writeFile(tempFile, args[0]);
 		const { stdout } = await execFile(compiler, ["run", tempFile]);
-		const compiled = await fs.readFile(tempRunResultFile, "utf8");
-		return compiled;
+		log.info("lala");
+		try {
+			await fs.access(tempRunResultFile);
+			const compiled = await fs.readFile(tempRunResultFile, "utf8");
+			log.info(compiled);
+			return { result: compiled, err: null };
+		} catch (error) {
+			const err = await fs.readFile(tempErrorFile, "utf8");
+			return { result: null, err: JSON.parse(err) };
+		}
 	})
 
 	ipcMain.on("requestFileDialog", async () => {

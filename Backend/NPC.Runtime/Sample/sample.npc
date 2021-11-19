@@ -1,0 +1,46 @@
+if (int 1 == 1 and 
+    bool true == false ){
+	"{ReceiverValue}" = [ "11111111-0000-0000-0000-000000000000" ]
+}
+elif (not guid g"8b3f858e-815b-4004-946e-5afe4dce3524" == g"8b3f858e-815b-4004-946e-5afe4dce3529" and 
+    bool true == true ){
+	"{ReceiverValue}" = [ "22222222-0000-0000-0000-000000000000" ]
+}
+elif (not int 3 == 1 and 
+    bool true == true ){
+	"{ReceiverValue}" = [ "33333333-0000-0000-0000-000000000000" ]
+}
+if (int 0 == 999 or 
+    not bool 1 == true ){
+	"{ReceiverValue}" = [ "44444444-0000-0000-0000-000000000000" ]
+}
+if (str "abc" == "999" or 
+    not bool true == true ){
+	"{ReceiverValue}" = [ "55555555-0000-0000-0000-000000000000" ]
+}
+elif (str "abc" == "aBc" or 
+    guid g"a0000000-0000-0000-0000-000000000000" == g"a0000000000000000000000000000000" or 
+    not str "abc def" contains "abc" ){
+	"{ReceiverValue}" = [ "66666666-0000-0000-0000-000000000000" ]
+}
+if (guid g"562a1152-3635-48e7-a7d6-6d4aa6a2b7f8" == null or 
+    str "null" == null ){
+	"{ReceiverValue}" = [ "77777777-0000-0000-0000-000000000000" ]
+}
+if (str "null" == null or 
+    str "" == null ){
+	"{ReceiverValue}" = [ "88888888-0000-0000-0000-000000000000" ]
+}
+if (str "null" == "" or 
+    str "" == null or 
+    guid null == null ){
+	"{ReceiverValue}" = [ "99999999-0000-0000-0000-000000000000" ]
+}
+if (guid g"3bb79038-e8bb-4fab-9c93-558e34ffc93b" in [ "3bb79038-e8bb-4fab-9c93-558e34ffc93a"  "7fa9fef7-bb39-4353-a30c-df209d0cdffe" ] or 
+    int 3 in [ "1"  "22"  "3" ] or 
+    str " abc " in [ "abc"  "def abc" ] ){
+	"{ReceiverValue}" = [ "10101010-0000-0000-0000-000000000000" ]
+}
+if (guid "" in [ ] ){
+	"{ReceiverValue}" = [ "11111111-0000-0000-0000-000000000000" ]
+}

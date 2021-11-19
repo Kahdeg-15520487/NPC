@@ -50,7 +50,7 @@ namespace NPC.Compiler.AST
             sb.AppendLine("{");
             foreach (ReturnStatement rt in ifBody)
             {
-                sb.AppendLine($"\t{rt}");
+                sb.AppendLine($"    {rt}");
             }
             sb.AppendLine("}");
             if (elseBody != null)

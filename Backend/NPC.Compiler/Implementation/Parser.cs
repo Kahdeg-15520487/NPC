@@ -17,32 +17,42 @@ namespace NPC.Compiler.Implementation
 
         Token currentToken;
         Token nextToken => lexer.PeekNextToken();
+        Token prevToken;
 
         public Parser(ILexer l)
         {
             lexer = l;
+            prevToken = null;
             currentToken = lexer.GetNextToken();
         }
 
-        void Error(string msg)
+        void Error(string msg, int posInLineAdjust = 1)
         {
-            throw new Exception($"{msg} at ({lexer.CurrentLine}:{lexer.CurrentPosInLine}) : {lexer.CurrentLineSource} ");
+            var start = (lexer.CurrentPosInLine + posInLineAdjust - prevToken?.lexeme?.Length).Value;
+            var length = lexer.CurrentPosInLine - start;
+            throw new SyntaxErrorException(lexer.CurrentLine, start, length, lexer.CurrentLineContext, msg);
         }
 
         void Error()
         {
-            Error($"Invalid Token: {currentToken}");
+            Error($"invalid Token: {currentToken}");
+        }
+
+        void Error(TokenType expecting, int posInLineAdjust = 1)
+        {
+            Error($"expecting: { expecting}", posInLineAdjust);
         }
 
         void Error(params TokenType[] expecting)
         {
-            Error($"Expecting: {string.Join(", ", expecting)}");
+            Error($"expecting: {string.Join(", ", expecting)}");
         }
 
         void Eat(TokenType t)
         {
             if (t == TokenType.ANY || currentToken.type == t)
             {
+                prevToken = currentToken;
                 currentToken = lexer.GetNextToken();
             }
             else
@@ -55,6 +65,7 @@ namespace NPC.Compiler.Implementation
         {
             if (t.Contains(currentToken.type))
             {
+                prevToken = currentToken;
                 currentToken = lexer.GetNextToken();
             }
             else
@@ -199,8 +210,14 @@ namespace NPC.Compiler.Implementation
                 List<Token> results = new List<Token>();
                 do
                 {
-                    results.Add(currentToken);
+                    if (currentToken.type != TokenType.STRING &&
+                        currentToken.type != TokenType.RBRACKET)
+                    {
+                        Error(TokenType.RBRACKET, prevToken.lexeme.Length + 2);
+                    }
+                    var rtstmt = currentToken;
                     Eat(TokenType.STRING);
+                    results.Add(rtstmt);
                 } while (currentToken.type != TokenType.RBRACKET);
                 Eat(TokenType.RBRACKET);
                 return new ReturnStatement(ident, results.ToArray());
@@ -279,6 +296,7 @@ namespace NPC.Compiler.Implementation
                         return new IfStatement(conditions, ifBody, null);
                     }
                 default:
+                    Error("Expecting IF or ELIF!");
                     return null;
             }
         }

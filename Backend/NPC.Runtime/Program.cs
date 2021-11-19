@@ -10,6 +10,7 @@ using NPC.Runtime.Runtime;
 using Rosen.EMS.Infrastructure.DynamicConditionQuery;
 using Newtonsoft.Json.Linq;
 using Rosen.EMS.Infrastructure.DynamicConditionQuery.Dto;
+using NPC.Compiler;
 
 namespace NPC.Runtime
 {
@@ -52,25 +53,31 @@ namespace NPC.Runtime
                     text = text.TrimEnd() + ';';
                     try
                     {
-                        Compiler.AST.Policy policy = Parse(text);
-
-                        ConditionStatementDto[] translated = Translate(policy);
-                        Console.WriteLine("=====");
-                        Console.WriteLine("beautify:");
-                        PrettyPrint pp = new PrettyPrint();
-                        Console.WriteLine(pp.Beautify(policy));
-
-                        var result = JsonConvert.SerializeObject(translated, Formatting.Indented);
-                        Console.WriteLine("=====");
-                        Console.WriteLine("compiled:");
-                        Console.WriteLine(result);
-
-                        var matches = RunCondition(translated);
-                        Console.WriteLine("=====");
-                        Console.WriteLine("matches:");
-                        foreach (var m in matches)
+                        (Compiler.AST.Policy policy, Error error) = Parse(text);
+                        if (error == null)
                         {
-                            Console.WriteLine(m);
+                            ConditionStatementDto[] translated = Translate(policy);
+                            Console.WriteLine("=====");
+                            Console.WriteLine("beautify:");
+                            PrettyPrint pp = new PrettyPrint();
+                            Console.WriteLine(pp.Beautify(policy));
+
+                            var result = JsonConvert.SerializeObject(translated, Formatting.Indented);
+                            Console.WriteLine("=====");
+                            Console.WriteLine("compiled:");
+                            Console.WriteLine(result);
+
+                            var matches = RunCondition(translated);
+                            Console.WriteLine("=====");
+                            Console.WriteLine("matches:");
+                            foreach (var m in matches)
+                            {
+                                Console.WriteLine(m);
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine(error);
                         }
                     }
                     catch (Exception e)
@@ -87,30 +94,32 @@ namespace NPC.Runtime
                     Console.WriteLine("source:");
                     Console.WriteLine(source);
 
-                    Compiler.AST.Policy policy = Parse(source);
-
-                    Console.WriteLine("=====");
-                    Console.WriteLine("beautify:");
-                    PrettyPrint pp = new PrettyPrint();
-                    Console.WriteLine(pp.Beautify(policy));
-
-                    ConditionStatementDto[] conditions = Translate(policy);
-                    var serializedConditions = JsonConvert.SerializeObject(conditions, Formatting.Indented);
-                    Console.WriteLine("=====");
-                    Console.WriteLine("compiled:");
-                    Console.WriteLine(serializedConditions);
-                    serializedConditions = JsonConvert.SerializeObject(conditions, Formatting.Indented);
-                    string compiledPath = Path.ChangeExtension(sourcePath, ".json");
-                    File.WriteAllText(compiledPath, serializedConditions);
-                    Console.WriteLine("saved to {0}", compiledPath);
-
-                    var matches = RunCondition(conditions);
-
-                    Console.WriteLine("=====");
-                    Console.WriteLine("matches:");
-                    foreach (var m in matches)
+                    (Compiler.AST.Policy policy, Error error) = Parse(source);
+                    if (error == null)
                     {
-                        Console.WriteLine(m);
+                        Console.WriteLine("=====");
+                        Console.WriteLine("beautify:");
+                        PrettyPrint pp = new PrettyPrint();
+                        Console.WriteLine(pp.Beautify(policy));
+
+                        ConditionStatementDto[] conditions = Translate(policy);
+                        var serializedConditions = JsonConvert.SerializeObject(conditions, Formatting.Indented);
+                        Console.WriteLine("=====");
+                        Console.WriteLine("compiled:");
+                        Console.WriteLine(serializedConditions);
+                        serializedConditions = JsonConvert.SerializeObject(conditions, Formatting.Indented);
+                        string compiledPath = Path.ChangeExtension(sourcePath, ".json");
+                        File.WriteAllText(compiledPath, serializedConditions);
+                        Console.WriteLine("saved to {0}", compiledPath);
+
+                        var matches = RunCondition(conditions);
+
+                        Console.WriteLine("=====");
+                        Console.WriteLine("matches:");
+                        foreach (var m in matches)
+                        {
+                            Console.WriteLine(m);
+                        }
                     }
                 }
 
@@ -126,28 +135,49 @@ namespace NPC.Runtime
                 }
                 else
                 {
+                    var errorPath = Path.ChangeExtension(filePath, ".err.json");
+                    if (File.Exists(errorPath))
+                    {
+                        File.Delete(errorPath);
+                    }
                     switch (verb)
                     {
                         case "compile":
                             {
                                 var source = File.ReadAllText(filePath);
                                 var compiledPath = Path.ChangeExtension(filePath, ".json");
-                                Compiler.AST.Policy policy = Parse(source);
-                                ConditionStatementDto[] conditions = Translate(policy);
-                                var serializedConditions = JsonConvert.SerializeObject(conditions, Formatting.Indented);
-                                File.WriteAllText(compiledPath, serializedConditions);
-                                Console.WriteLine("saved compiled to {0}", compiledPath);
+                                var compilationResult = Parse(source);
+                                (Compiler.AST.Policy policy, Error error) = Parse(source);
+                                if (error == null)
+                                {
+                                    ConditionStatementDto[] conditions = Translate(policy);
+                                    var serializedConditions = JsonConvert.SerializeObject(conditions, Formatting.Indented);
+                                    File.WriteAllText(compiledPath, serializedConditions);
+                                    Console.WriteLine("saved compiled to {0}", compiledPath);
+                                }
+                                else
+                                {
+                                    File.WriteAllText(errorPath, JsonConvert.SerializeObject(error));
+                                }
                             }
                             break;
                         case "beautify":
                             {
                                 var source = File.ReadAllText(filePath);
                                 var beautifiedPath = Path.ChangeExtension(filePath, ".b.npc");
-                                Compiler.AST.Policy policy = Parse(source);
-                                PrettyPrint pp = new PrettyPrint();
-                                var beautified = pp.Beautify(policy);
-                                File.WriteAllText(beautifiedPath, beautified);
-                                Console.WriteLine("saved beautified source to {0}", beautifiedPath);
+                                var compilationResult = Parse(source);
+                                (Compiler.AST.Policy policy, Error error) = Parse(source);
+                                if (error == null)
+                                {
+                                    PrettyPrint pp = new PrettyPrint();
+                                    var beautified = pp.Beautify(policy);
+                                    File.WriteAllText(beautifiedPath, beautified);
+                                    Console.WriteLine("saved beautified source to {0}", beautifiedPath);
+                                }
+                                else
+                                {
+                                    File.WriteAllText(errorPath, JsonConvert.SerializeObject(error));
+                                }
                             }
                             break;
                         case "run":
@@ -160,13 +190,38 @@ namespace NPC.Runtime
                                         conditions = JsonConvert.DeserializeObject<ConditionStatementDto[]>(source);
                                         break;
                                     case ".npc":
-                                        Compiler.AST.Policy policy = Parse(source);
-                                        conditions = Translate(policy);
+                                        (Compiler.AST.Policy policy, Error error) = Parse(source);
+                                        if (error == null)
+                                        {
+                                            conditions = Translate(policy);
+                                        }
+                                        else
+                                        {
+                                            File.WriteAllText(errorPath, JsonConvert.SerializeObject(error));
+                                            Environment.Exit(0);
+                                        }
                                         break;
                                 }
                                 var runResultPath = Path.ChangeExtension(filePath, ".r.json");
                                 File.WriteAllText(runResultPath, RunCondition(conditions).ToString());
                                 Console.WriteLine("saved run result to {0}", runResultPath);
+                            }
+                            break;
+                        case "testlexer":
+                            {
+                                var source = File.ReadAllText(filePath);
+                                (Compiler.AST.Policy policy, Error error) = Parse(source);
+                                if (error == null)
+                                {
+                                    PrettyPrint pp = new PrettyPrint();
+                                    var beautified = pp.Beautify(policy);
+                                    Console.WriteLine(beautified);
+                                }
+                                else
+                                {
+                                    Console.WriteLine(error);
+                                }
+                                Console.ReadLine();
                             }
                             break;
                         default:
@@ -177,7 +232,7 @@ namespace NPC.Runtime
             }
         }
 
-        private static Compiler.AST.Policy Parse(string text)
+        private static (Compiler.AST.Policy policy, Error error) Parse(string text)
         {
             var policy = Compiler.Compiler.Compile(text);
             return policy;
@@ -223,21 +278,28 @@ namespace NPC.Runtime
                                     Console.WriteLine("source:");
                                     Console.WriteLine(source);
 
-                                    Compiler.AST.Policy policy = Parse(source);
-
-                                    ConditionStatementDto[] conditions = Translate(policy);
-                                    var serializedConditions = JsonConvert.SerializeObject(conditions, Formatting.Indented);
-                                    Console.WriteLine("=====");
-                                    Console.WriteLine("compiled:");
-                                    Console.WriteLine(serializedConditions);
-
-                                    var matches = RunCondition(conditions);
-
-                                    Console.WriteLine("=====");
-                                    Console.WriteLine("matches:");
-                                    foreach (var m in matches)
+                                    (Compiler.AST.Policy policy, Error error) = Parse(source);
+                                    if (error == null)
                                     {
-                                        Console.WriteLine(m);
+
+                                        ConditionStatementDto[] conditions = Translate(policy);
+                                        var serializedConditions = JsonConvert.SerializeObject(conditions, Formatting.Indented);
+                                        Console.WriteLine("=====");
+                                        Console.WriteLine("compiled:");
+                                        Console.WriteLine(serializedConditions);
+
+                                        var matches = RunCondition(conditions);
+
+                                        Console.WriteLine("=====");
+                                        Console.WriteLine("matches:");
+                                        foreach (var m in matches)
+                                        {
+                                            Console.WriteLine(m);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine(error);
                                     }
                                 }
                                 else

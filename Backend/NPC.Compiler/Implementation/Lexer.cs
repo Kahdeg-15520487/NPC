@@ -13,12 +13,25 @@ namespace NPC.Compiler.Implementation
         char current_char;
         int current_line;
         int current_pos_in_line;
+        string[] lines;
 
         public int CurrentLine { get => current_line; }
         public int CurrentPosInLine { get => current_pos_in_line; }
         public string CurrentLineSource {
             get {
                 return text.Substring(pos - current_pos_in_line, current_pos_in_line);
+            }
+        }
+        public string CurrentLineContext {
+            get {
+                if (CurrentLine == 0)
+                {
+                    return lines[current_line];
+                }
+                else
+                {
+                    return $"{lines[CurrentLine - 1]}{Environment.NewLine}{lines[current_line]}";
+                }
             }
         }
 
@@ -29,6 +42,7 @@ namespace NPC.Compiler.Implementation
             current_char = text[pos];
             current_line = 0;
             current_pos_in_line = 0;
+            lines = t.Split(Environment.NewLine);
         }
 
         public Lexer(Lexer other)
@@ -38,17 +52,17 @@ namespace NPC.Compiler.Implementation
             current_char = other.current_char;
             current_line = other.current_line;
             current_pos_in_line = other.current_pos_in_line;
+            lines = other.text.Split(Environment.NewLine);
         }
 
         public void Error()
         {
-            throw new Exception($"Unexpected token at ({current_line},{current_pos_in_line}) : {current_char}");
+            throw new SyntaxErrorException(CurrentLine, CurrentPosInLine + 1, 1, CurrentLineContext, "Unexpected token at ");
         }
 
         public void Error(string msg)
         {
-            throw new Exception($"Unexpected token at ({current_line},{current_pos_in_line}) : {current_char}" + Environment.NewLine +
-                                $"Message: {msg}");
+            throw new SyntaxErrorException(CurrentLine, CurrentPosInLine + 1, 1, CurrentLineContext, msg);
         }
 
         void Advance()
@@ -86,10 +100,21 @@ namespace NPC.Compiler.Implementation
             return text[pos + 1];
         }
 
-        void SkipWhitespace()
+        int SkipWhitespace()
         {
+            int count = 0;
             while (current_char != '\0' && char.IsWhiteSpace(current_char))
+            {
+                if (current_char == '\r')
+                {
+                    count = 0;
+                    current_pos_in_line = 0;
+                    current_line++;
+                }
                 Advance();
+                count++;
+            }
+            return count;
         }
 
         void SkipComment()
@@ -169,7 +194,8 @@ namespace NPC.Compiler.Implementation
             Advance();
             if (!Guid.TryParse(result, out Guid parsed))
             {
-                Error($"{result} is not a valid GUID");
+                current_pos_in_line -= result.Length + 6;
+                Error($"'{result}' is not a valid GUID");
             }
             return new Token(TokenType.GUID, result.ToString());
         }
@@ -190,7 +216,8 @@ namespace NPC.Compiler.Implementation
             Advance();
             if (!DateTime.TryParse(result, out DateTime parsed))
             {
-                Error($"{result} is not a valid DateTime");
+                current_pos_in_line -= result.Length + 6;
+                Error($"'{result}' is not a valid DateTime");
             }
             return new Token(TokenType.DATETIME, parsed.ToString());
         }
@@ -266,21 +293,16 @@ namespace NPC.Compiler.Implementation
         {
             while (current_char != '\0')
             {
-                if (current_char == '\r')
-                {
-                    current_line++;
-                    current_pos_in_line = 0;
-                }
-
                 if (char.IsWhiteSpace(current_char))
                 {
-                    SkipWhitespace();
+                    current_pos_in_line += SkipWhitespace();
                     continue;
                 }
 
                 if (current_char == '/' && Peek() == '/')
                 {
                     SkipComment();
+                    current_line++;
                     continue;
                 }
 

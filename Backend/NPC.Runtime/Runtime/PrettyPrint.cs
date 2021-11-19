@@ -123,7 +123,7 @@ namespace NPC.Runtime.Runtime
             result.AppendLine("){");
             foreach (var rtstmt in ifStmt.ifBody)
             {
-                result.AppendFormat("\t\"{0}\" = [ \"{1}\" ]", rtstmt.Ident.lexeme, string.Join(" ", rtstmt.Results.Select(r => r.lexeme)));
+                result.AppendFormat("    \"{0}\" = [ \"{1}\" ]", rtstmt.Ident.lexeme, string.Join(" ", rtstmt.Results.Select(r => r.lexeme)));
             }
             result.AppendLine();
             result.AppendLine("}");
