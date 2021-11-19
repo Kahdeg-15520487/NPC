@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8" />
+	<meta http-equiv="Content-Security-Policy"
+		content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' file:; font-src file:" />
+	<title>Monaco Editor!</title>
+	<style>
+		html,
+		body {
+			margin: 0;
+			padding: 0;
+			height: 90%;
+		}
+
+		#container {
+			height: 50%;
+			width: 50%;
+			float: left;
+		}
+
+		#jsonviewer {
+			margin-left: 50%;
+			height: 50%;
+			width: 50%;
+		}
+
+		#stuff div {
+			display: inline-block;
+		}
+
+		#runresult {
+			height: 100%;
+			width: 50%;
+			display: inline-block;
+		}
+
+		#bigContainer {
+			height: 100%;
+		}
+
+		@media (prefers-color-scheme: dark) {
+			body {
+				background: #333;
+				color: white;
+			}
+		}
+
+		@media (prefers-color-scheme: light) {
+			body {
+				background: #ddd;
+				color: black;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<div id="bigContainer">
+		<div>
+			<button id="btnLoadFile">Open</button>
+			<button id="beautify">Beautify</button>
+			<button id="toggle-dark-mode" style="float:right;">Toggle Dark Mode</button>
+		</div>
+		<div id="container"></div>
+		<div id="jsonviewer"></div>
+		<div id="stuff" style="padding-top: 1%; height:45%">
+			<div style="width: 16%;float:left">
+				<button id="compile" style="width: 48%; display: inline-block;">Compile</button>
+				<button id="run" style="width: 48%; display: inline-block;">Run</button>
+			</div>
+			<div id="runresult"></div>
+			<script src="renderer.js"></script>
+		</div>
+	</div>
+</body>
+
+<script src="./vs/loader.js"></script>
+<script>
+	require.config({ paths: { vs: './vs' } });
+
+	require(['vs/editor/editor.main'], function () {
+		monaco.languages.register({
+			id: 'npc'
+		});
+		monaco.languages.setMonarchTokensProvider('npc', {
+			// Set defaultToken to invalid to see what you do not tokenize yet
+			// defaultToken: 'invalid',
+
+			keywords: [
+				'if', 'elif', 'and', 'or', 'not', 'null'
+			],
+
+			typeKeywords: [
+				'bool', 'int', 'str', 'guid', 'datetime'
+			],
+
+			operators: [
+				'=', '>', '<', '==', '<=', '>=', 'in', 'isempty'
+			],
+
+			booleanValue: [
+				'true', 'false'
+			],
+
+			stringModifier: [
+				'g', 'd'
+			],
+
+			// we include these common regular expressions
+			symbols: /[=><!~?:&|+\-*\/\^%]+/,
+
+			// C# style strings
+			escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
+
+			// The main tokenizer for our languages
+			tokenizer: {
+				root: [
+					// identifiers and keywords
+					[/[a-z_$][\w$]*/, {
+						cases: {
+							'@typeKeywords': 'keyword',
+							'@keywords': 'keyword',
+							'@booleanValue': 'number',
+							'@stringModifier': 'stringModifier',
+							'@default': 'identifier'
+						}
+					}],
+
+					// whitespace
+					{ include: '@whitespace' },
+
+					// delimiters and operators
+					[/[{}()\[\]]/, '@brackets'],
+					[/[<>](?!@symbols)/, '@brackets'],
+					[/@symbols/, {
+						cases: {
+							'@operators': 'operator',
+							'@default': ''
+						}
+					}],
+
+					// @ annotations.
+					// As an example, we emit a debugging log message on these tokens.
+					// Note: message are supressed during the first load -- change some lines to see them.
+					[/@\s*[a-zA-Z_\$][\w\$]*/, { token: 'annotation', log: 'annotation token: $0' }],
+
+					// numbers
+					[/\d*\.\d+([eE][\-+]?\d+)?/, 'number.float'],
+					[/0[xX][0-9a-fA-F]+/, 'number.hex'],
+					[/\d+/, 'number'],
+
+					// delimiter: after number because of .\d floats
+					[/[;,.]/, 'delimiter'],
+
+					// strings
+					[/"([^"\\]|\\.)*$/, 'string.invalid'],  // non-teminated string
+					[/"/, { token: 'string.quote', bracket: '@open', next: '@string' }],
+
+					// characters
+					[/'[^\\']'/, 'string'],
+					[/(')(@escapes)(')/, ['string', 'string.escape', 'string']],
+					[/'/, 'string.invalid']
+				],
+
+				comment: [
+					[/[^\/*]+/, 'comment'],
+					[/\/\*/, 'comment', '@push'],    // nested comment
+					["\\*/", 'comment', '@pop'],
+					[/[\/*]/, 'comment']
+				],
+
+				string: [
+					[/[^\\"]+/, 'string'],
+					[/@escapes/, 'string.escape'],
+					[/\\./, 'string.escape.invalid'],
+					[/"/, { token: 'string.quote', bracket: '@close', next: '@pop' }]
+				],
+
+				whitespace: [
+					[/[ \t\r\n]+/, 'white'],
+					[/\/\*/, 'comment', '@comment'],
+					[/\/\/.*$/, 'comment'],
+				],
+			},
+		});
+
+		// Define a new theme that constains only rules that match this language
+		monaco.editor.defineTheme('npc', {
+			base: 'vs',
+			inherit: true,
+			rules: [
+				{ token: 'stringModifier', foreground: '#cca700', fontStyle: 'bold' },
+			],
+			colors: {},
+		});
+		monaco.editor.defineTheme('npc-dark', {
+			base: 'vs-dark',
+			inherit: true,
+			rules: [
+				{ token: 'stringModifier', foreground: 'ffa500', fontStyle: 'bold' },
+			],
+			colors: {},
+		});
+
+		const editor = monaco.editor.create(document.getElementById('container'), {
+			theme: 'npc-dark',
+			value: '',
+			language: 'npc',
+			minimap: { enabled: true },
+			automaticlayout: true,
+			scrollBeyondLastLine: false
+		});
+
+		const jsonViewer = monaco.editor.create(document.getElementById('jsonviewer'), {
+			theme: 'npc-dark',
+			value: '',
+			language: 'json',
+			minimap: { enabled: true },
+			automaticlayout: true,
+			scrollBeyondLastLine: false
+		});
+
+		const runresult = monaco.editor.create(document.getElementById('runresult'), {
+			theme: 'npc-dark',
+			value: '',
+			language: 'json',
+			minimap: { enabled: true },
+			automaticlayout: true,
+			scrollBeyondLastLine: false
+		})
+
+		window.onresize = function () {
+			editor.layout();
+			jsonViewer.layout();
+			runresult.layout();
+		};
+
+		window.file.receive("fromMain", (data) => {
+			editor.setValue(data);
+		});
+
+		document.getElementById('compile').addEventListener("click", async () => {
+			console.log(editor.getValue());
+			const compiled = await window.npc.compile(editor.getValue());
+			jsonViewer.setValue(compiled);
+		});
+
+		document.getElementById('run').addEventListener("click", async () => {
+			console.log(editor.getValue());
+			const runResult = await window.npc.run(editor.getValue());
+			runresult.setValue(runResult);
+		});
+
+		document.getElementById('beautify').addEventListener("click", async () => {
+			console.log(editor.getValue());
+			const beautified = await window.npc.beautify(editor.getValue());
+			editor.setValue(beautified);
+		});
+	});
+</script>
+
+</html>

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "NPC.Runtime": {
+      "commandName": "Project",
+      "commandLineArgs": "sample.npc"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <PublishTrimmed>true</PublishTrimmed>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishSingleFile>true</PublishSingleFile>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\PCS-API\src\Rosen.EMS\Infrastructure\DynamicConditionQuery\ConditionQueryHandler.cs" Link="Runtime\ConditionQueryHandler.cs" />
+    <Compile Include="..\..\..\PCS-API\src\Rosen.EMS\Infrastructure\DynamicConditionQuery\Dto\ConditionClauseDto.cs" Link="Runtime\ConditionClauseDto.cs" />
+    <Compile Include="..\..\..\PCS-API\src\Rosen.EMS\Infrastructure\DynamicConditionQuery\Dto\ConditionStatementDto.cs" Link="Runtime\ConditionStatementDto.cs" />
+    <Compile Include="..\..\..\PCS-API\src\Rosen.EMS\Infrastructure\DynamicConditionQuery\Dto\ResultClauseDto.cs" Link="Runtime\ResultClauseDto.cs" />
+    <Compile Include="..\..\..\PCS-API\src\Rosen.EMS\Infrastructure\DynamicConditionQuery\Object\ConditionEnum.cs" Link="Runtime\ConditionEnum.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NPC.Compiler\NPC.Compiler.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Utility\" />
+  </ItemGroup>
+
+</Project>
