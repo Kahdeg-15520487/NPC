@@ -335,3 +335,4 @@ ASALocalRun/
 
 **/*.exe
 .vscode/
+*.zip

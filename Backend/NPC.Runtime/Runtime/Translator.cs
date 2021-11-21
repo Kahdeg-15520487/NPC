@@ -17,7 +17,7 @@ using NPC.Compiler.Datas;
 
 namespace NPC.Runtime.Runtime
 {
-    class Translator
+    public class Translator
     {
         private List<ConditionStatementDto> conditionStatementDtos;
         public Translator()
@@ -27,6 +27,7 @@ namespace NPC.Runtime.Runtime
 
         public ConditionStatementDto[] Translate(Policy policy)
         {
+            conditionStatementDtos.Clear();
 
             foreach (IfStatement ifStmt in policy.Statements)
             {
@@ -42,95 +43,111 @@ namespace NPC.Runtime.Runtime
             ConditionStatementDto stmt = new ConditionStatementDto();
             stmt.Conjunction = isElif ? ConjunctionEnum.Or : ConjunctionEnum.And;
             List<ConditionClauseDto> conditionClauseDtos = new List<ConditionClauseDto>();
-            foreach (Condition cond in ifStmt.condition)
+            if (ifStmt.condition.Length == 0)
             {
-                ConditionClauseDto condClause = new ConditionClauseDto();
-                switch (cond.Conjunction)
+                //else clause
+                conditionClauseDtos.Add(new ConditionClauseDto()
                 {
-                    case Compiler.Datas.Conjunction.And:
-                        condClause.Conjunction = ConjunctionEnum.And;
-                        break;
-                    case Compiler.Datas.Conjunction.Or:
-                        condClause.Conjunction = ConjunctionEnum.Or;
-                        break;
-                    default:
-                        condClause.Conjunction = ConjunctionEnum.None;
-                        break;
-                }
-                condClause.LogicCondition = !cond.Negate;
-                switch (cond.Type)
+                    Conjunction = ConjunctionEnum.None,
+                    LogicCondition = true,
+                    DataType = DataTypeEnum.Bool,
+                    Criteria = true,
+                    Operator = OperatorTypeEnum.Equal,
+                    Value = true
+                });
+            }
+            else
+            {
+                foreach (Condition cond in ifStmt.condition)
                 {
-                    case Compiler.Datas.ValType.Guid:
-                        condClause.DataType = DataTypeEnum.Guid;
-                        break;
-                    case Compiler.Datas.ValType.Bool:
-                        condClause.DataType = DataTypeEnum.Bool;
-                        break;
-                    case Compiler.Datas.ValType.Int:
-                        condClause.DataType = DataTypeEnum.Int;
-                        break;
-                    case Compiler.Datas.ValType.String:
-                        condClause.DataType = DataTypeEnum.String;
-                        break;
-                    case Compiler.Datas.ValType.DateTime:
-                        condClause.DataType = DataTypeEnum.DateTime;
-                        break;
-                    default:
-                        condClause.DataType = DataTypeEnum.String;
-                        break;
-                }
-                condClause.Criteria = JToken.Parse(ConvertToJson( cond.LHS.tokens[0]));
-                switch (cond.Operator)
-                {
-                    case Compiler.Datas.Operator.Equal:
-                        condClause.Operator = OperatorTypeEnum.Equal;
-                        break;
-                    case Compiler.Datas.Operator.Contain:
-                        condClause.Operator = OperatorTypeEnum.Contain;
-                        break;
-                    case Compiler.Datas.Operator.Greater:
-                        condClause.Operator = OperatorTypeEnum.Greater;
-                        break;
-                    case Compiler.Datas.Operator.Less:
-                        condClause.Operator = OperatorTypeEnum.Less;
-                        break;
-                    case Compiler.Datas.Operator.GreaterOrEqual:
-                        condClause.Operator = OperatorTypeEnum.GreaterOrEqual;
-                        break;
-                    case Compiler.Datas.Operator.LessOrEqual:
-                        condClause.Operator = OperatorTypeEnum.LessOrEqual;
-                        break;
-                    case Compiler.Datas.Operator.In:
-                        condClause.Operator = OperatorTypeEnum.In;
-                        break;
-                    case Compiler.Datas.Operator.IsEmpty:
-                        condClause.Operator = OperatorTypeEnum.IsEmpty;
-                        break;
-                    default:
-                        condClause.Operator = OperatorTypeEnum.Equal;
-                        break;
-                }
+                    ConditionClauseDto condClause = new ConditionClauseDto();
+                    switch (cond.Conjunction)
+                    {
+                        case Compiler.Datas.Conjunction.And:
+                            condClause.Conjunction = ConjunctionEnum.And;
+                            break;
+                        case Compiler.Datas.Conjunction.Or:
+                            condClause.Conjunction = ConjunctionEnum.Or;
+                            break;
+                        default:
+                            condClause.Conjunction = ConjunctionEnum.None;
+                            break;
+                    }
+                    condClause.LogicCondition = !cond.Negate;
+                    switch (cond.Type)
+                    {
+                        case Compiler.Datas.ValType.Guid:
+                            condClause.DataType = DataTypeEnum.Guid;
+                            break;
+                        case Compiler.Datas.ValType.Bool:
+                            condClause.DataType = DataTypeEnum.Bool;
+                            break;
+                        case Compiler.Datas.ValType.Int:
+                            condClause.DataType = DataTypeEnum.Int;
+                            break;
+                        case Compiler.Datas.ValType.String:
+                            condClause.DataType = DataTypeEnum.String;
+                            break;
+                        case Compiler.Datas.ValType.DateTime:
+                            condClause.DataType = DataTypeEnum.DateTime;
+                            break;
+                        default:
+                            condClause.DataType = DataTypeEnum.String;
+                            break;
+                    }
+                    condClause.Criteria = JToken.Parse(ConvertToJson(cond.LHS.tokens[0]));
+                    switch (cond.Operator)
+                    {
+                        case Compiler.Datas.Operator.Equal:
+                            condClause.Operator = OperatorTypeEnum.Equal;
+                            break;
+                        case Compiler.Datas.Operator.Contain:
+                            condClause.Operator = OperatorTypeEnum.Contain;
+                            break;
+                        case Compiler.Datas.Operator.Greater:
+                            condClause.Operator = OperatorTypeEnum.Greater;
+                            break;
+                        case Compiler.Datas.Operator.Less:
+                            condClause.Operator = OperatorTypeEnum.Less;
+                            break;
+                        case Compiler.Datas.Operator.GreaterOrEqual:
+                            condClause.Operator = OperatorTypeEnum.GreaterOrEqual;
+                            break;
+                        case Compiler.Datas.Operator.LessOrEqual:
+                            condClause.Operator = OperatorTypeEnum.LessOrEqual;
+                            break;
+                        case Compiler.Datas.Operator.In:
+                            condClause.Operator = OperatorTypeEnum.In;
+                            break;
+                        case Compiler.Datas.Operator.IsEmpty:
+                            condClause.Operator = OperatorTypeEnum.IsEmpty;
+                            break;
+                        default:
+                            condClause.Operator = OperatorTypeEnum.Equal;
+                            break;
+                    }
 
-                if (cond.Operator != Compiler.Datas.Operator.IsEmpty)
-                {
-                    if (cond.RHS.IsArray)
+                    if (cond.Operator != Compiler.Datas.Operator.IsEmpty)
                     {
-                        StringBuilder sb = new StringBuilder();
-                        sb.Append("[");
-                        sb.Append(string.Join(", ", cond.RHS.tokens.Select(t =>
+                        if (cond.RHS.IsArray)
                         {
-                            return ConvertToJson(t);
-                        })));
-                        sb.Append("]");
-                        condClause.Value = JToken.Parse(sb.ToString());
+                            StringBuilder sb = new StringBuilder();
+                            sb.Append("[");
+                            sb.Append(string.Join(", ", cond.RHS.tokens.Select(t =>
+                            {
+                                return ConvertToJson(t);
+                            })));
+                            sb.Append("]");
+                            condClause.Value = JToken.Parse(sb.ToString());
+                        }
+                        else
+                        {
+                            //todo handle null value and empty array
+                            condClause.Value = JToken.Parse(ConvertToJson(cond.RHS.tokens[0]));
+                        }
                     }
-                    else
-                    {
-                        //todo handle null value and empty array
-                        condClause.Value = JToken.Parse(ConvertToJson(cond.RHS.tokens[0]));
-                    }
+                    conditionClauseDtos.Add(condClause);
                 }
-                conditionClauseDtos.Add(condClause);
             }
             stmt.If = conditionClauseDtos.ToArray();
             List<ResultClauseDto> resultClauseDtos = new List<ResultClauseDto>();
