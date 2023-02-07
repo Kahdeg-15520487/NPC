@@ -28,7 +28,7 @@ namespace NPC.Compiler.Implementation
 
         void Error(string msg, int posInLineAdjust = 1)
         {
-            var start = (lexer.CurrentPosInLine + posInLineAdjust - prevToken?.lexeme?.Length).Value;
+            var start = lexer.CurrentPosInLine + posInLineAdjust - (prevToken?.lexeme?.Length ?? 0);
             var length = lexer.CurrentPosInLine - start;
             throw new SyntaxErrorException(lexer.CurrentLine, start, length, lexer.CurrentLineContext, msg);
         }
@@ -40,7 +40,7 @@ namespace NPC.Compiler.Implementation
 
         void Error(TokenType expecting, int posInLineAdjust = 1)
         {
-            Error($"expecting: { expecting}", posInLineAdjust);
+            Error($"expecting: {expecting}", posInLineAdjust);
         }
 
         void Error(params TokenType[] expecting)

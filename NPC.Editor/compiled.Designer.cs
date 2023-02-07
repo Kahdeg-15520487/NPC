@@ -34,6 +34,7 @@ namespace NPC.Editor
             this.btn_minify = new System.Windows.Forms.Button();
             this.fctb = new FastColoredTextBoxNS.FastColoredTextBox();
             this.btn_run = new System.Windows.Forms.Button();
+            this.btn_beautify = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.fctb)).BeginInit();
             this.SuspendLayout();
             // 
@@ -70,6 +71,7 @@ namespace NPC.Editor
             this.fctb.DefaultMarkerSize = 8;
             this.fctb.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
             this.fctb.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.fctb.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.fctb.IsReplaceMode = false;
             this.fctb.Language = FastColoredTextBoxNS.Language.JSON;
             this.fctb.LeftBracket = '[';
@@ -87,7 +89,7 @@ namespace NPC.Editor
             // 
             // btn_run
             // 
-            this.btn_run.Location = new System.Drawing.Point(85, 0);
+            this.btn_run.Location = new System.Drawing.Point(170, 1);
             this.btn_run.Name = "btn_run";
             this.btn_run.Size = new System.Drawing.Size(75, 23);
             this.btn_run.TabIndex = 2;
@@ -95,11 +97,22 @@ namespace NPC.Editor
             this.btn_run.UseVisualStyleBackColor = true;
             this.btn_run.Click += new System.EventHandler(this.btn_run_Click);
             // 
+            // btn_beautify
+            // 
+            this.btn_beautify.Location = new System.Drawing.Point(85, 0);
+            this.btn_beautify.Name = "btn_beautify";
+            this.btn_beautify.Size = new System.Drawing.Size(79, 25);
+            this.btn_beautify.TabIndex = 3;
+            this.btn_beautify.Text = "Beautify";
+            this.btn_beautify.UseVisualStyleBackColor = true;
+            this.btn_beautify.Click += new System.EventHandler(this.btn_beautify_Click);
+            // 
             // form_compiled
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(542, 494);
+            this.Controls.Add(this.btn_beautify);
             this.Controls.Add(this.btn_run);
             this.Controls.Add(this.fctb);
             this.Controls.Add(this.btn_minify);
@@ -118,5 +131,6 @@ namespace NPC.Editor
         private System.Windows.Forms.Button btn_minify;
         private FastColoredTextBoxNS.FastColoredTextBox fctb;
         private System.Windows.Forms.Button btn_run;
+        private System.Windows.Forms.Button btn_beautify;
     }
 }

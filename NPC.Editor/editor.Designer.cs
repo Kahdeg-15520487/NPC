@@ -37,6 +37,7 @@ namespace NPC.Editor
             this.tool_file_new = new System.Windows.Forms.ToolStripMenuItem();
             this.tool_file_open = new System.Windows.Forms.ToolStripMenuItem();
             this.tool_file_save = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tool_edit = new System.Windows.Forms.ToolStripMenuItem();
             this.tool_edit_beautify = new System.Windows.Forms.ToolStripMenuItem();
             this.tool_edit_newline = new System.Windows.Forms.ToolStripMenuItem();
@@ -47,6 +48,7 @@ namespace NPC.Editor
             this.btn_compile = new System.Windows.Forms.Button();
             this.btn_run = new System.Windows.Forms.Button();
             this.btn_beautify = new System.Windows.Forms.Button();
+            this.lbl_status = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.fctb)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -80,7 +82,6 @@ namespace NPC.Editor
             this.fctb.DefaultMarkerSize = 8;
             this.fctb.DescriptionFile = "";
             this.fctb.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
-            this.fctb.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.fctb.IsReplaceMode = false;
             this.fctb.LeftBracket = '[';
             this.fctb.LeftBracket2 = '{';
@@ -91,7 +92,7 @@ namespace NPC.Editor
             this.fctb.RightBracket2 = '}';
             this.fctb.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
             this.fctb.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("fctb.ServiceColors")));
-            this.fctb.Size = new System.Drawing.Size(933, 493);
+            this.fctb.Size = new System.Drawing.Size(933, 462);
             this.fctb.TabIndex = 0;
             this.fctb.WordWrapAutoIndent = false;
             this.fctb.Zoom = 100;
@@ -116,7 +117,8 @@ namespace NPC.Editor
             this.tool_file.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tool_file_new,
             this.tool_file_open,
-            this.tool_file_save});
+            this.tool_file_save,
+            this.saveAsToolStripMenuItem});
             this.tool_file.Name = "tool_file";
             this.tool_file.Size = new System.Drawing.Size(37, 20);
             this.tool_file.Text = "File";
@@ -125,22 +127,33 @@ namespace NPC.Editor
             // 
             this.tool_file_new.Name = "tool_file_new";
             this.tool_file_new.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-            this.tool_file_new.Size = new System.Drawing.Size(146, 22);
+            this.tool_file_new.Size = new System.Drawing.Size(184, 22);
             this.tool_file_new.Text = "New";
+            this.tool_file_new.Click += new System.EventHandler(this.tool_file_new_Click);
             // 
             // tool_file_open
             // 
             this.tool_file_open.Name = "tool_file_open";
             this.tool_file_open.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.tool_file_open.Size = new System.Drawing.Size(146, 22);
+            this.tool_file_open.Size = new System.Drawing.Size(184, 22);
             this.tool_file_open.Text = "Open";
             // 
             // tool_file_save
             // 
             this.tool_file_save.Name = "tool_file_save";
             this.tool_file_save.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.tool_file_save.Size = new System.Drawing.Size(146, 22);
+            this.tool_file_save.Size = new System.Drawing.Size(184, 22);
             this.tool_file_save.Text = "Save";
+            this.tool_file_save.Click += new System.EventHandler(this.tool_file_save_Click);
+            // 
+            // saveAsToolStripMenuItem
+            // 
+            this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
+            this.saveAsToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.S)));
+            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+            this.saveAsToolStripMenuItem.Text = "Save as";
+            this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
             // 
             // tool_edit
             // 
@@ -226,11 +239,20 @@ namespace NPC.Editor
             this.btn_beautify.UseVisualStyleBackColor = true;
             this.btn_beautify.Click += new System.EventHandler(this.btn_beautify_Click);
             // 
+            // lbl_status
+            // 
+            this.lbl_status.AutoSize = true;
+            this.lbl_status.Location = new System.Drawing.Point(0, 525);
+            this.lbl_status.Name = "lbl_status";
+            this.lbl_status.Size = new System.Drawing.Size(0, 15);
+            this.lbl_status.TabIndex = 6;
+            // 
             // form_editor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(933, 549);
+            this.Controls.Add(this.lbl_status);
             this.Controls.Add(this.btn_beautify);
             this.Controls.Add(this.btn_run);
             this.Controls.Add(this.btn_compile);
@@ -241,6 +263,7 @@ namespace NPC.Editor
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "form_editor";
             this.Text = "NPC.Editor";
+            this.Load += new System.EventHandler(this.form_editor_Load);
             ((System.ComponentModel.ISupportInitialize)(this.fctb)).EndInit();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
@@ -267,6 +290,8 @@ namespace NPC.Editor
         private System.Windows.Forms.ToolStripMenuItem tool_view_runresult;
         private System.Windows.Forms.ToolStripMenuItem tool_view_compiled;
         private System.Windows.Forms.Button btn_beautify;
+        private System.Windows.Forms.ToolStripMenuItem saveAsToolStripMenuItem;
+        private System.Windows.Forms.Label lbl_status;
     }
 }
 

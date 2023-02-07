@@ -64,5 +64,10 @@ namespace NPC.Editor
         {
             this.form_compiled_Shown(sender, e);
         }
+
+        private void btn_beautify_Click(object sender, EventArgs e)
+        {
+            this.fctb.Text = JsonConvert.SerializeObject(Compiled, Formatting.Indented);
+        }
     }
 }

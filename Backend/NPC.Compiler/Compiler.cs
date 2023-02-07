@@ -11,6 +11,10 @@ namespace NPC.Compiler
     {
         public static (Policy policy, Error error) Compile(string source)
         {
+            if (string.IsNullOrEmpty(source))
+            {
+                return (null, new Error(0, 0, 0, string.Empty, "No source code provided."));
+            }
             ILexer lexer = new Lexer(source);
             IParser parser = new Parser(lexer);
             try

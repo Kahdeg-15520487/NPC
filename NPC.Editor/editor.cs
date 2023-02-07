@@ -35,9 +35,12 @@ namespace NPC.Editor
 
         //stuff
         private bool isCtrlKIssued;
+        private string openningFile = null;
+        private bool haveUnsavedChange;
 
         //dialog
         private OpenFileDialog openFileDialog;
+        private SaveFileDialog saveFileDialog;
         private readonly PrettyPrint prettyPrinter;
         private readonly Translator translator;
 
@@ -49,6 +52,11 @@ namespace NPC.Editor
             InitializeComponent();
 
             openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Notification Policy script|*.npc";
+            openFileDialog.Title = "Open a notification policy script";
+            saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "Notification Policy script|*.npc";
+            saveFileDialog.Title = "Save a notification policy script";
 
             tool_file_new.Click += (o, e) => { };
             tool_file_open.Click += this.btn_open_Click;
@@ -92,17 +100,6 @@ namespace NPC.Editor
             return base.ProcessCmdKey(ref msg, keyData);
         }
 
-//        protected override void OnLoad(EventArgs e)
-//        {
-//            //fctb.Text = File.ReadAllText("sample.npc");
-//            fctb.Text = @"if (int 1 == 2){
-//    ""a"" = ""b""
-//} else {
-//    ""a"" = ""c""
-//}";
-//            base.OnLoad(e);
-//        }
-
         private void fastColoredTextBox1_TextChanged(object sender, FastColoredTextBoxNS.TextChangedEventArgs e)
         {
             fctb.LeftBracket = '(';
@@ -128,21 +125,14 @@ namespace NPC.Editor
 
             //set folding markers
             e.ChangedRange.SetFoldingMarkers("{", "}");//allow to collapse brackets block
+            haveUnsavedChange = true;
         }
 
         private void btn_open_Click(object sender, EventArgs e)
         {
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            if (GuardUnsavedChanges() == DialogResult.OK && openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                try
-                {
-                    var fileContent = File.ReadAllText(openFileDialog.FileName);
-                    fctb.Text = fileContent;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Error opening selected file", ex.Message);
-                }
+                OpenFile(openFileDialog.FileName);
             }
         }
 
@@ -158,7 +148,7 @@ namespace NPC.Editor
             }
             else
             {
-                //MessageBox.Show(error.Message);
+                lbl_status.Text = error.ErrorMessage;
                 var errorLine = new FastColoredTextBoxNS.Range(fctb, error.Line);
                 errorLine.SetStyle(ErrorStyle);
             }
@@ -167,14 +157,23 @@ namespace NPC.Editor
         private void btn_run_Click(object sender, EventArgs e)
         {
             (NPC.Compiler.AST.Policy policy, NPC.Compiler.Error error) = NPC.Compiler.Compiler.Compile(fctb.Text);
-            var translated = translator.Translate(policy);
-
-            JToken input = JToken.FromObject(new
+            if (policy != null)
             {
-                Condition = translated
-            });
-            var result = ConditionQueryHandler.HandleCondition(input);
-            MessageBox.Show(JsonConvert.SerializeObject(result, Formatting.Indented));
+                var translated = translator.Translate(policy);
+
+                JToken input = JToken.FromObject(new
+                {
+                    Condition = translated
+                });
+                var result = ConditionQueryHandler.HandleCondition(input);
+                MessageBox.Show(JsonConvert.SerializeObject(result, Formatting.Indented));
+            }
+            else
+            {
+                lbl_status.Text = error.ErrorMessage;
+                var errorLine = new FastColoredTextBoxNS.Range(fctb, error.Line);
+                errorLine.SetStyle(ErrorStyle);
+            }
         }
 
         private void btn_beautify_Click(object sender, EventArgs e)
@@ -183,7 +182,14 @@ namespace NPC.Editor
 
             (NPC.Compiler.AST.Policy policy, NPC.Compiler.Error error) = NPC.Compiler.Compiler.Compile(fctb.Text);
 
-            fctb.Text = prettyPrinter.Beautify(policy, isNewline);
+            if (policy != null)
+            {
+                fctb.Text = prettyPrinter.Beautify(policy, isNewline);
+            }
+            else
+            {
+                lbl_status.Text = error.ErrorMessage;
+            }
         }
 
         private void fastColoredTextBox1_SelectionChangedDelayed(object sender, EventArgs e)
@@ -215,6 +221,108 @@ namespace NPC.Editor
         private void fctb_ScrollbarsUpdated(object sender, EventArgs e)
         {
             fastColoredTextBox1_SelectionChangedDelayed(sender, e);
+        }
+
+        private void tool_file_save_Click(object sender, EventArgs e)
+        {
+            SaveFile();
+        }
+
+        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFileAs();
+        }
+
+        private void form_editor_Load(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(Program.fileOpenWith) && File.Exists(Program.fileOpenWith))
+            {
+                OpenFile(Program.fileOpenWith);
+            }
+            else
+            {
+                NewFile();
+            }
+        }
+
+        private void tool_file_new_Click(object sender, EventArgs e)
+        {
+            GuardUnsavedChanges();
+            NewFile();
+        }
+
+        private void NewFile()
+        {
+            fctb.Text = string.Empty;
+            openningFile = null;
+            this.Text = "New notification policy script";
+            haveUnsavedChange = false;
+        }
+
+        private void OpenFile(string file)
+        {
+            try
+            {
+                var fileContent = File.ReadAllText(file);
+                fctb.Text = fileContent;
+                openningFile = file;
+                this.Text = file;
+                haveUnsavedChange = false;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error opening selected file", ex.Message);
+            }
+        }
+
+        private DialogResult SaveFile()
+        {
+            if (!string.IsNullOrEmpty(openningFile))
+            {
+                File.WriteAllText(openningFile, fctb.Text);
+                return DialogResult.OK;
+            }
+            else
+            {
+                return SaveFileAs();
+            }
+        }
+
+        private DialogResult SaveFileAs()
+        {
+            var dialogResult = saveFileDialog.ShowDialog();
+            if (dialogResult == DialogResult.OK)
+            {
+                try
+                {
+                    using (var fs = saveFileDialog.OpenFile())
+                    {
+                        using (StreamWriter sw = new StreamWriter(fs))
+                        {
+                            sw.Write(fctb.Text);
+                        }
+                    }
+                    OpenFile(saveFileDialog.FileName);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error saving selected file", ex.Message);
+                }
+            }
+            return dialogResult;
+        }
+
+        private DialogResult GuardUnsavedChanges()
+        {
+            if (haveUnsavedChange)
+            {
+                if (MessageBox.Show("You have unsaved changes!\r\nDo you want to discard unsave changes?", "Warning", MessageBoxButtons.YesNo) == DialogResult.No)
+                {
+                    return SaveFile();
+                }
+            }
+
+            return DialogResult.OK;
         }
     }
 }

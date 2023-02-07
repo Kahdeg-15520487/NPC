@@ -12,12 +12,19 @@ namespace NPC.Editor
 {
     static class Program
     {
+        public static string fileOpenWith = null;
+
         /// <summary>
         ///  The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
+            if (args.Length == 1)
+            {
+                fileOpenWith = args[0];
+            }
+
             JsonConvert.DefaultSettings = () =>
             {
                 return new JsonSerializerSettings { Converters = { new StringEnumConverter { NamingStrategy = new DefaultNamingStrategy() } } };
