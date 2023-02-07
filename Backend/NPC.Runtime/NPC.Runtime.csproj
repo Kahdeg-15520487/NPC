@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <PublishTrimmed>true</PublishTrimmed>
     <PublishReadyToRun>true</PublishReadyToRun>
     <PublishSingleFile>true</PublishSingleFile>
@@ -10,11 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\..\PCS-API\src\Rosen.EMS\Infrastructure\DynamicConditionQuery\ConditionQueryHandler.cs" Link="Runtime\ConditionQueryHandler.cs" />
-    <Compile Include="..\..\..\PCS-API\src\Rosen.EMS\Infrastructure\DynamicConditionQuery\Dto\ConditionClauseDto.cs" Link="Runtime\ConditionClauseDto.cs" />
-    <Compile Include="..\..\..\PCS-API\src\Rosen.EMS\Infrastructure\DynamicConditionQuery\Dto\ConditionStatementDto.cs" Link="Runtime\ConditionStatementDto.cs" />
-    <Compile Include="..\..\..\PCS-API\src\Rosen.EMS\Infrastructure\DynamicConditionQuery\Dto\ResultClauseDto.cs" Link="Runtime\ResultClauseDto.cs" />
-    <Compile Include="..\..\..\PCS-API\src\Rosen.EMS\Infrastructure\DynamicConditionQuery\Object\ConditionEnum.cs" Link="Runtime\ConditionEnum.cs" />
+    <Compile Include="..\..\..\..\..\source\repos\PCS-API\src\Rosen.EMS\Infrastructure\DynamicConditionQuery\ConditionQueryHandler.cs" Link="Runtime\ConditionQueryHandler.cs" />
+    <Compile Include="..\..\..\..\..\source\repos\PCS-API\src\Rosen.EMS\Infrastructure\DynamicConditionQuery\Dto\ConditionClauseDto.cs" Link="Runtime\ConditionClauseDto.cs" />
+    <Compile Include="..\..\..\..\..\source\repos\PCS-API\src\Rosen.EMS\Infrastructure\DynamicConditionQuery\Dto\ConditionStatementDto.cs" Link="Runtime\ConditionStatementDto.cs" />
+    <Compile Include="..\..\..\..\..\source\repos\PCS-API\src\Rosen.EMS\Infrastructure\DynamicConditionQuery\Dto\ResultClauseDto.cs" Link="Runtime\ResultClauseDto.cs" />
+    <Compile Include="..\..\..\..\..\source\repos\PCS-API\src\Rosen.EMS\Infrastructure\DynamicConditionQuery\Object\ConditionEnum.cs" Link="Runtime\ConditionEnum.cs" />
   </ItemGroup>
 
   <ItemGroup>
